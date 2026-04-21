@@ -3,16 +3,25 @@ using UnityEngine.InputSystem;
 
 public class SpawnController : MonoBehaviour
 {
+    [Header("References")]
     public SpawnManager spawnManager;
-    public InputActionReference spawnAction;
-    public InputActionReference switchAction;
+
+    [Header("Input Actions")]
+    public InputActionReference spawnAction;     // Button to spawn current item
+    public InputActionReference switchAction;    // Button to cycle to next item
 
     void OnEnable()
     {
         if (spawnAction != null)
+        {
+            spawnAction.action.Enable();
             spawnAction.action.performed += OnSpawn;
+        }
         if (switchAction != null)
+        {
+            switchAction.action.Enable();
             switchAction.action.performed += OnSwitch;
+        }
     }
 
     void OnDisable()
@@ -23,13 +32,15 @@ public class SpawnController : MonoBehaviour
             switchAction.action.performed -= OnSwitch;
     }
 
-    void OnSpawn(InputAction.CallbackContext context)
+    void OnSpawn(InputAction.CallbackContext ctx)
     {
-        spawnManager.SpawnCurrentItem();
+        if (spawnManager != null)
+            spawnManager.SpawnCurrentItem();
     }
 
-    void OnSwitch(InputAction.CallbackContext context)
+    void OnSwitch(InputAction.CallbackContext ctx)
     {
-        spawnManager.NextItem();
+        if (spawnManager != null)
+            spawnManager.NextItem();
     }
 }

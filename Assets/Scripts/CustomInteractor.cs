@@ -5,11 +5,14 @@ public class CustomInteractor : MonoBehaviour
 {
     [Header("Input Actions")]
     public InputActionReference triggerAction;
-    public InputActionReference gripAction;
 
     [Header("Raycast Settings")]
-    public float rayMaxDistance = 20f;
+    public float rayMaxDistance = 10f;
     public LayerMask interactableLayerMask = ~0;
+
+    [Header("Controller Forward Offset")]
+    [Tooltip("Rotation offset applied to the controller's forward direction. Quest 2 controllers usually need about -45 degrees on X.")]
+    public Vector3 forwardRotationOffset = new Vector3(-45f, 0f, 0f);
 
     [Header("Other Hand (for two-hand scale)")]
     public CustomInteractor otherHand;
@@ -20,19 +23,24 @@ public class CustomInteractor : MonoBehaviour
     public Color hoverRayColor = Color.yellow;
     public Color selectRayColor = Color.green;
 
+    // Runtime state
     private GameObject hoveredObject;
     private GameObject selectedObject;
     private Color originalColor;
     private Rigidbody selectedRigidbody;
     private bool selectedWasKinematic;
 
+    // Manipulation state
     private Vector3 grabOffset;
     private Quaternion grabRotationOffset;
-    private bool isManipulating;
 
+    // Two-hand scale state
     private Vector3 scaleInitialScale;
     private float scaleInitialDistance;
     private bool isScaling;
+
+    Vector3 GetRayOrigin() => transform.position;
+    Vector3 GetRayDirection() => transform.rotation * Quaternion.Euler(forwardRotationOffset) * Vector3.forward;
 
     void OnEnable()
     {
@@ -41,10 +49,6 @@ public class CustomInteractor : MonoBehaviour
             triggerAction.action.Enable();
             triggerAction.action.performed += OnTriggerPressed;
             triggerAction.action.canceled += OnTriggerReleased;
-        }
-        if (gripAction != null)
-        {
-            gripAction.action.Enable();
         }
     }
 
@@ -61,10 +65,7 @@ public class CustomInteractor : MonoBehaviour
     {
         if (selectedObject != null && otherHand != null && otherHand.selectedObject == selectedObject)
         {
-            if (!isScaling)
-            {
-                StartScaling();
-            }
+            if (!isScaling) StartScaling();
             UpdateScaling();
         }
         else if (isScaling)
@@ -86,17 +87,29 @@ public class CustomInteractor : MonoBehaviour
 
     void UpdateRaycast()
     {
-        Ray ray = new Ray(transform.position, transform.forward);
+        Ray ray = new Ray(GetRayOrigin(), GetRayDirection());
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit, rayMaxDistance, interactableLayerMask))
         {
-            if (hit.collider.CompareTag("Interactable"))
+            Transform t = hit.collider.transform;
+            GameObject interactableObj = null;
+            while (t != null)
             {
-                if (hoveredObject != hit.collider.gameObject)
+                if (t.CompareTag("Interactable"))
+                {
+                    interactableObj = t.gameObject;
+                    break;
+                }
+                t = t.parent;
+            }
+
+            if (interactableObj != null)
+            {
+                if (hoveredObject != interactableObj)
                 {
                     ClearHover();
-                    hoveredObject = hit.collider.gameObject;
+                    hoveredObject = interactableObj;
                     ApplyHoverHighlight(hoveredObject);
                 }
                 return;
@@ -150,10 +163,7 @@ public class CustomInteractor : MonoBehaviour
         selectedObject = obj;
 
         Renderer rend = selectedObject.GetComponentInChildren<Renderer>();
-        if (rend != null)
-        {
-            rend.material.color = selectRayColor;
-        }
+        if (rend != null) rend.material.color = selectRayColor;
 
         selectedRigidbody = selectedObject.GetComponent<Rigidbody>();
         if (selectedRigidbody != null)
@@ -164,8 +174,6 @@ public class CustomInteractor : MonoBehaviour
 
         grabOffset = Quaternion.Inverse(transform.rotation) * (selectedObject.transform.position - transform.position);
         grabRotationOffset = Quaternion.Inverse(transform.rotation) * selectedObject.transform.rotation;
-
-        isManipulating = true;
     }
 
     void ReleaseObject()
@@ -173,19 +181,12 @@ public class CustomInteractor : MonoBehaviour
         if (selectedObject == null) return;
 
         Renderer rend = selectedObject.GetComponentInChildren<Renderer>();
-        if (rend != null)
-        {
-            rend.material.color = originalColor;
-        }
+        if (rend != null) rend.material.color = originalColor;
 
-        if (selectedRigidbody != null)
-        {
-            selectedRigidbody.isKinematic = selectedWasKinematic;
-        }
+        if (selectedRigidbody != null) selectedRigidbody.isKinematic = selectedWasKinematic;
 
         selectedObject = null;
         selectedRigidbody = null;
-        isManipulating = false;
     }
 
     void UpdateManipulation()
@@ -220,7 +221,10 @@ public class CustomInteractor : MonoBehaviour
     {
         if (lineRenderer == null) return;
 
-        lineRenderer.SetPosition(0, transform.position);
+        Vector3 origin = GetRayOrigin();
+        Vector3 direction = GetRayDirection();
+
+        lineRenderer.SetPosition(0, origin);
 
         if (selectedObject != null)
         {
@@ -236,8 +240,8 @@ public class CustomInteractor : MonoBehaviour
         }
         else
         {
-            Vector3 endPoint = transform.position + transform.forward * rayMaxDistance;
-            Ray ray = new Ray(transform.position, transform.forward);
+            Vector3 endPoint = origin + direction * rayMaxDistance;
+            Ray ray = new Ray(origin, direction);
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, rayMaxDistance))
             {
