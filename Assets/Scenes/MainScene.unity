@@ -785,6 +785,7 @@ GameObject:
   - component: {fileID: 207749764}
   - component: {fileID: 207749763}
   - component: {fileID: 207749762}
+  - component: {fileID: 207749765}
   m_Layer: 0
   m_Name: RightHand
   m_TagString: Untagged
@@ -1025,6 +1026,27 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
+--- !u!114 &207749765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 207749760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab14769fc3ce7d24c890697c3bb6498b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NearGrabInteractor
+  gripAction: {fileID: 187161793506945269, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  grabRadius: 0.35
+  interactableLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  grabIndicator: {fileID: 0}
+  idleColor: {r: 0, g: 1, b: 1, a: 1}
+  hoverColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  grabbedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1001 &216240532
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2691,6 +2713,7 @@ GameObject:
   - component: {fileID: 957692567}
   - component: {fileID: 957692565}
   - component: {fileID: 957692566}
+  - component: {fileID: 957692569}
   m_Layer: 0
   m_Name: LeftHand
   m_TagString: Untagged
@@ -2931,6 +2954,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1609914089}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &957692569
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 957692564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab14769fc3ce7d24c890697c3bb6498b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NearGrabInteractor
+  gripAction: {fileID: -6131295136447488360, guid: c348712bda248c246b8c49b3db54643f, type: 3}
+  grabRadius: 0.35
+  interactableLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  grabIndicator: {fileID: 0}
+  idleColor: {r: 0, g: 1, b: 1, a: 1}
+  hoverColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  grabbedColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &973420568
 GameObject:
   m_ObjectHideFlags: 0
