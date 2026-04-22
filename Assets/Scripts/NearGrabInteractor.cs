@@ -199,7 +199,7 @@ public class NearGrabInteractor : MonoBehaviour
         if (grabIndicator == null) return;
 
         grabIndicator.transform.position = transform.position;
-        grabIndicator.transform.localScale = Vector3.one * grabRadius * 2f;
+        grabIndicator.transform.localScale = Vector3.one * grabRadius * 0.08f;
 
         Renderer rend = grabIndicator.GetComponent<Renderer>();
         if (rend == null) return;
