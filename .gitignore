@@ -35,3 +35,4 @@
 *.mdb
 *.opendb
 *.VC.db
+.utmp/
