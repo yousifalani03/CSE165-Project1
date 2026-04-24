@@ -8,6 +8,7 @@ public class NearGrabInteractor : MonoBehaviour
 
     [Header("Near Grab Settings")]
     public float grabRadius = 0.35f;
+    public float indicatorSize = 0.08f;
     public LayerMask interactableLayerMask = ~0;
 
     [Header("Visual Indicator")]
@@ -26,7 +27,19 @@ public class NearGrabInteractor : MonoBehaviour
     private Quaternion grabRotationOffset;
 
     private Color originalColor;
-    private Renderer currentRenderer;
+    private Renderer highlightedRenderer;
+
+    private CustomInteractor rayInteractor;
+
+    public bool IsNearGrabAvailable()
+    {
+        return hoveredObject != null || grabbedObject != null;
+    }
+
+    void Awake()
+    {
+        rayInteractor = GetComponent<CustomInteractor>();
+    }
 
     void OnEnable()
     {
@@ -93,12 +106,17 @@ public class NearGrabInteractor : MonoBehaviour
 
         if (nearest != hoveredObject)
         {
-            ClearHover();
+            ClearHighlight();
             hoveredObject = nearest;
 
             if (hoveredObject != null)
             {
-                ApplyHover(hoveredObject);
+                if (rayInteractor != null)
+                {
+                    rayInteractor.ForceClearHover();
+                }
+
+                ApplyHighlight(hoveredObject, hoverColor);
             }
         }
     }
@@ -109,8 +127,6 @@ public class NearGrabInteractor : MonoBehaviour
         {
             Rigidbody rb = hoveredObject.GetComponent<Rigidbody>();
 
-            // Prevent near-grab from taking an object already held by the ray interactor.
-            // CustomInteractor sets Rigidbody.isKinematic = true while holding an object.
             if (rb != null && rb.isKinematic) return;
 
             GrabObject(hoveredObject);
@@ -127,13 +143,16 @@ public class NearGrabInteractor : MonoBehaviour
 
     void GrabObject(GameObject obj)
     {
+        if (rayInteractor != null)
+        {
+            rayInteractor.ForceClearHover();
+        }
+
         grabbedObject = obj;
 
-        currentRenderer = grabbedObject.GetComponentInChildren<Renderer>();
-        if (currentRenderer != null)
+        if (highlightedRenderer != null)
         {
-            originalColor = currentRenderer.material.color;
-            currentRenderer.material.color = grabbedColor;
+            highlightedRenderer.material.color = grabbedColor;
         }
 
         grabbedRigidbody = grabbedObject.GetComponent<Rigidbody>();
@@ -155,9 +174,9 @@ public class NearGrabInteractor : MonoBehaviour
 
     void ReleaseObject()
     {
-        if (currentRenderer != null)
+        if (highlightedRenderer != null)
         {
-            currentRenderer.material.color = originalColor;
+            highlightedRenderer.material.color = originalColor;
         }
 
         if (grabbedRigidbody != null)
@@ -167,31 +186,46 @@ public class NearGrabInteractor : MonoBehaviour
 
         grabbedObject = null;
         grabbedRigidbody = null;
-        currentRenderer = null;
         hoveredObject = null;
+        highlightedRenderer = null;
     }
 
-    void ApplyHover(GameObject obj)
+    void ApplyHighlight(GameObject obj, Color highlightColor)
     {
         Renderer rend = obj.GetComponentInChildren<Renderer>();
 
         if (rend != null)
         {
-            currentRenderer = rend;
-            originalColor = rend.material.color;
-            rend.material.color = hoverColor;
+            if (highlightedRenderer != rend)
+            {
+                if (highlightedRenderer != null)
+                {
+                    highlightedRenderer.material.color = originalColor;
+                }
+
+                if (rend.material.color != hoverColor && rend.material.color != grabbedColor)
+                {
+                    originalColor = rend.material.color;
+                }
+
+                highlightedRenderer = rend;
+            }
+
+            rend.material.color = highlightColor;
         }
     }
 
-    void ClearHover()
+    void ClearHighlight()
     {
-        if (hoveredObject != null && currentRenderer != null && hoveredObject != grabbedObject)
+        if (grabbedObject != null) return;
+
+        if (highlightedRenderer != null)
         {
-            currentRenderer.material.color = originalColor;
+            highlightedRenderer.material.color = originalColor;
+            highlightedRenderer = null;
         }
 
         hoveredObject = null;
-        currentRenderer = null;
     }
 
     void UpdateIndicator()
@@ -199,7 +233,7 @@ public class NearGrabInteractor : MonoBehaviour
         if (grabIndicator == null) return;
 
         grabIndicator.transform.position = transform.position;
-        grabIndicator.transform.localScale = Vector3.one * grabRadius * 0.08f;
+        grabIndicator.transform.localScale = Vector3.one * indicatorSize;
 
         Renderer rend = grabIndicator.GetComponent<Renderer>();
         if (rend == null) return;

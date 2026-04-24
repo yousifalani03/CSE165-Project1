@@ -23,6 +23,9 @@ public class CustomInteractor : MonoBehaviour
     public Color hoverRayColor = Color.yellow;
     public Color selectRayColor = Color.green;
 
+    [Header("Near Grab Conflict Prevention")]
+    public NearGrabInteractor nearGrabInteractor;
+
     // Runtime state
     private GameObject hoveredObject;
     private GameObject selectedObject;
@@ -41,6 +44,14 @@ public class CustomInteractor : MonoBehaviour
 
     Vector3 GetRayOrigin() => transform.position;
     Vector3 GetRayDirection() => transform.rotation * Quaternion.Euler(forwardRotationOffset) * Vector3.forward;
+
+    void Awake()
+    {
+        if (nearGrabInteractor == null)
+        {
+            nearGrabInteractor = GetComponent<NearGrabInteractor>();
+        }
+    }
 
     void OnEnable()
     {
@@ -63,6 +74,22 @@ public class CustomInteractor : MonoBehaviour
 
     void Update()
     {
+        if (nearGrabInteractor != null && nearGrabInteractor.IsNearGrabAvailable() && selectedObject == null)
+        {
+            ClearHover();
+
+            if (lineRenderer != null)
+            {
+                lineRenderer.enabled = false;
+            }
+
+            return;
+        }
+
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = true;
+        }
         if (selectedObject != null && otherHand != null && otherHand.selectedObject == selectedObject)
         {
             if (!isScaling) StartScaling();
@@ -120,14 +147,17 @@ public class CustomInteractor : MonoBehaviour
     }
 
     void ApplyHoverHighlight(GameObject obj)
+{
+    Renderer rend = obj.GetComponentInChildren<Renderer>();
+    if (rend != null)
     {
-        Renderer rend = obj.GetComponentInChildren<Renderer>();
-        if (rend != null)
+        if (rend.material.color != hoverRayColor && rend.material.color != selectRayColor)
         {
             originalColor = rend.material.color;
-            rend.material.color = hoverRayColor;
         }
+        rend.material.color = hoverRayColor;
     }
+}
 
     void ClearHover()
     {
@@ -142,14 +172,28 @@ public class CustomInteractor : MonoBehaviour
         hoveredObject = null;
     }
 
+    public void ForceClearHover()
+    {
+        ClearHover();
+
+        if (lineRenderer != null)
+        {
+            lineRenderer.enabled = false;
+        }
+    }
+
     void OnTriggerPressed(InputAction.CallbackContext ctx)
     {
+        if (nearGrabInteractor != null && nearGrabInteractor.IsNearGrabAvailable())
+        {
+            return;
+        }
+
         if (hoveredObject != null && selectedObject == null)
         {
             SelectObject(hoveredObject);
         }
     }
-
     void OnTriggerReleased(InputAction.CallbackContext ctx)
     {
         if (selectedObject != null)

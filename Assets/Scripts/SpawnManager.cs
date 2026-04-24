@@ -2,15 +2,22 @@ using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-    public GameObject[] spawnablePrefabs;
-    public Transform spawnPoint;
-    private int currentIndex = 0;
-
-    public void SpawnCurrentItem()
+    [System.Serializable]
+    public class SpawnableItem
     {
-        if (spawnablePrefabs.Length == 0 || spawnPoint == null) return;
+        public string displayName;
+        public GameObject prefab;
+    }
 
-        GameObject obj = Instantiate(spawnablePrefabs[currentIndex], 
+    public SpawnableItem[] items;
+    public Transform spawnPoint;
+
+    public void SpawnItem(int index)
+    {
+        if (index < 0 || index >= items.Length) return;
+        if (items[index].prefab == null || spawnPoint == null) return;
+
+        GameObject obj = Instantiate(items[index].prefab,
             spawnPoint.position, spawnPoint.rotation);
 
         obj.tag = "Interactable";
@@ -22,19 +29,14 @@ public class SpawnManager : MonoBehaviour
             obj.AddComponent<BoxCollider>();
     }
 
-    public void NextItem()
+    public int GetItemCount()
     {
-        currentIndex = (currentIndex + 1) % spawnablePrefabs.Length;
+        return items != null ? items.Length : 0;
     }
 
-    public void PreviousItem()
+    public string GetItemName(int index)
     {
-        currentIndex--;
-        if (currentIndex < 0) currentIndex = spawnablePrefabs.Length - 1;
-    }
-
-    public int GetCurrentIndex()
-    {
-        return currentIndex;
+        if (index < 0 || index >= items.Length) return "";
+        return items[index].displayName;
     }
 }
