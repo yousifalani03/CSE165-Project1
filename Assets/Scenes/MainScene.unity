@@ -1471,6 +1471,7 @@ MonoBehaviour:
   hoverRayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   selectRayColor: {r: 0, g: 1, b: 0, a: 1}
   nearGrabInteractor: {fileID: 0}
+  groupSelectionManager: {fileID: 1256055915}
 --- !u!114 &207749764
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4574,6 +4575,7 @@ MonoBehaviour:
   hoverRayColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   selectRayColor: {r: 0, g: 1, b: 0, a: 1}
   nearGrabInteractor: {fileID: 0}
+  groupSelectionManager: {fileID: 1256055915}
 --- !u!120 &957692566
 LineRenderer:
   serializedVersion: 3
@@ -6820,6 +6822,58 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: -927199367670048503, guid: e33a059f27da7814ab39d479a8b22a57, type: 3}
   m_PrefabInstance: {fileID: 1352538089}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1256055914
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1256055916}
+  - component: {fileID: 1256055915}
+  m_Layer: 0
+  m_Name: GroupSelectionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1256055915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1256055914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91f35b17d10c83f408da0f50ebd4f6b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GroupSelectionManager
+  leftInteractor: {fileID: 957692565}
+  rightInteractor: {fileID: 207749763}
+  leftToggleAction: {fileID: 7446211524920150480, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  rightToggleAction: {fileID: 4115290093958435528, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  duplicateAction: {fileID: -29847471181713328, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  clearAction: {fileID: 1192798923798443448, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  groupSelectedColor: {r: 0, g: 0, b: 1, a: 1}
+  duplicateOffset: {x: 0.35, y: 0, z: 0.35}
+--- !u!4 &1256055916
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1256055914}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.64744, y: 1.55853, z: -8.11553}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1263395120 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -927199367670048503, guid: e33a059f27da7814ab39d479a8b22a57, type: 3}
@@ -12392,3 +12446,4 @@ SceneRoots:
   - {fileID: 681919608}
   - {fileID: 1426757823}
   - {fileID: 903549686}
+  - {fileID: 1256055916}

@@ -26,12 +26,17 @@ public class CustomInteractor : MonoBehaviour
     [Header("Near Grab Conflict Prevention")]
     public NearGrabInteractor nearGrabInteractor;
 
+    [Header("Group Selection")]
+    public GroupSelectionManager groupSelectionManager;
+
     // Runtime state
     private GameObject hoveredObject;
     private GameObject selectedObject;
     private Color originalColor;
     private Rigidbody selectedRigidbody;
     private bool selectedWasKinematic;
+
+    public GameObject CurrentHoveredObject => hoveredObject; //group select
 
     // Manipulation state
     private Vector3 grabOffset;
@@ -50,6 +55,11 @@ public class CustomInteractor : MonoBehaviour
         if (nearGrabInteractor == null)
         {
             nearGrabInteractor = GetComponent<NearGrabInteractor>();
+        }
+
+        if (groupSelectionManager == null)
+        {
+            groupSelectionManager = FindObjectOfType<GroupSelectionManager>();
         }
     }
 
@@ -147,28 +157,40 @@ public class CustomInteractor : MonoBehaviour
     }
 
     void ApplyHoverHighlight(GameObject obj)
-{
-    Renderer rend = obj.GetComponentInChildren<Renderer>();
-    if (rend != null)
     {
-        if (rend.material.color != hoverRayColor && rend.material.color != selectRayColor)
+        if (groupSelectionManager != null && groupSelectionManager.IsGroupSelected(obj))
         {
-            originalColor = rend.material.color;
+            return;
         }
-        rend.material.color = hoverRayColor;
+
+        Renderer rend = obj.GetComponentInChildren<Renderer>();
+
+        if (rend != null)
+        {
+            if (rend.material.color != hoverRayColor && rend.material.color != selectRayColor)
+            {
+                originalColor = rend.material.color;
+            }
+
+            rend.material.color = hoverRayColor;
+        }
     }
-}
 
     void ClearHover()
     {
         if (hoveredObject != null && hoveredObject != selectedObject)
         {
-            Renderer rend = hoveredObject.GetComponentInChildren<Renderer>();
-            if (rend != null)
+            if (groupSelectionManager == null || !groupSelectionManager.IsGroupSelected(hoveredObject))
             {
-                rend.material.color = originalColor;
+                Renderer rend = hoveredObject.GetComponentInChildren<Renderer>();
+
+                if (rend != null)
+                {
+                    rend.material.color = originalColor;
+                }
             }
         }
+
         hoveredObject = null;
     }
 
@@ -194,6 +216,7 @@ public class CustomInteractor : MonoBehaviour
             SelectObject(hoveredObject);
         }
     }
+    
     void OnTriggerReleased(InputAction.CallbackContext ctx)
     {
         if (selectedObject != null)
@@ -206,10 +229,19 @@ public class CustomInteractor : MonoBehaviour
     {
         selectedObject = obj;
 
+        bool usingGroup =
+            groupSelectionManager != null &&
+            groupSelectionManager.ShouldUseGroupManipulation(selectedObject);
+
         Renderer rend = selectedObject.GetComponentInChildren<Renderer>();
-        if (rend != null) rend.material.color = selectRayColor;
+
+        if (!usingGroup)
+        {
+            if (rend != null) rend.material.color = selectRayColor;
+        }
 
         selectedRigidbody = selectedObject.GetComponent<Rigidbody>();
+
         if (selectedRigidbody != null)
         {
             selectedWasKinematic = selectedRigidbody.isKinematic;
@@ -218,16 +250,37 @@ public class CustomInteractor : MonoBehaviour
 
         grabOffset = Quaternion.Inverse(transform.rotation) * (selectedObject.transform.position - transform.position);
         grabRotationOffset = Quaternion.Inverse(transform.rotation) * selectedObject.transform.rotation;
+
+        if (usingGroup)
+        {
+            groupSelectionManager.BeginGroupManipulation(transform);
+        }
     }
 
     void ReleaseObject()
     {
         if (selectedObject == null) return;
 
-        Renderer rend = selectedObject.GetComponentInChildren<Renderer>();
-        if (rend != null) rend.material.color = originalColor;
+        bool usingGroup =
+            groupSelectionManager != null &&
+            groupSelectionManager.ShouldUseGroupManipulation(selectedObject);
 
-        if (selectedRigidbody != null) selectedRigidbody.isKinematic = selectedWasKinematic;
+        if (usingGroup)
+        {
+            groupSelectionManager.EndGroupManipulation(transform);
+        }
+
+        Renderer rend = selectedObject.GetComponentInChildren<Renderer>();
+
+        if (!usingGroup)
+        {
+            if (rend != null) rend.material.color = originalColor;
+        }
+
+        if (selectedRigidbody != null)
+        {
+            selectedRigidbody.isKinematic = selectedWasKinematic;
+        }
 
         selectedObject = null;
         selectedRigidbody = null;
@@ -235,6 +288,13 @@ public class CustomInteractor : MonoBehaviour
 
     void UpdateManipulation()
     {
+        if (groupSelectionManager != null &&
+            groupSelectionManager.ShouldUseGroupManipulation(selectedObject))
+        {
+            groupSelectionManager.UpdateGroupManipulation(transform);
+            return;
+        }
+
         selectedObject.transform.position = transform.position + transform.rotation * grabOffset;
         selectedObject.transform.rotation = transform.rotation * grabRotationOffset;
     }
