@@ -59,7 +59,7 @@ public class CustomInteractor : MonoBehaviour
 
         if (groupSelectionManager == null)
         {
-            groupSelectionManager = FindObjectOfType<GroupSelectionManager>();
+            groupSelectionManager = FindFirstObjectByType<GroupSelectionManager>();
         }
     }
 
